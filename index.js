@@ -25,6 +25,4 @@ mongoose.connect(url,connectionParams)
         console.error(`Error connecting to the database. \n${err}`);
     })
 
-app.listen(3000, () => {
-    console.log ("server started")
-})
+app.listen(process.env.PORT || 5000);
