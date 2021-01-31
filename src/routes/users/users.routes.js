@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const User = require('../../models/models').User;
+const Address = require('../../models/models').Address;
 const response = require('../../utils/responses').getResponse;
 
 //Obtenemos todos los usuarios
 router.get("/getusers", async (req,res) => {
-    const users = await User.find();
+    const users = await User.find().populate('addresses');
     res.status(200).send(response('OK', users));
 });
 
@@ -14,7 +15,7 @@ router.get("/getusersById/:id", (req,res) => {
 
     const user = User.findOne({_id: req.params.id}, (err, user) =>{
         if(err){
-            res.status(400).send(response('Invalid user id'));
+            res.status(400).send(response('Invalid user id').populate('addresses'));
         }else if(!user){
             res.status(404).send(response('User not found'));
         }else if(user){
@@ -26,40 +27,40 @@ router.get("/getusersById/:id", (req,res) => {
 // Crear Usuario
 router.post ("/createUsers", (req,res) => {
 
-    const NEW_USER = new User ({
-        name: req.body.name, 
-        email: req.body.email,
-        birthDate: req.body.birthDate,
-    });
-     NEW_USER.save().then(createdUser => {
-        res.status(201).send(response('CREATED', NEW_USER));
+    const {
+        name, email, birthDate, street, state, city, country, zip
+    } = req.body
+    Address.create({
+        street, state, city, country, zip
+    }).then (newAddres => {
+        User.create({
+            name, email, birthDate, address: newAddres._id
+        }).then (newUser =>  {
+            res.status(201).send(response('CREATED', newUser))
+        })
     })
-    .catch(err => {
-        res.status(405).send("Invalid input");
-    });
+    .catch(err => res.status(405).send("Invalid input"));
 })
 
 
 // Editar
 router.put("/updateUsersById/:id", (req,res) => {
 
-    const user = User.findOne({ _id: req.params.id }, (err, user) =>{
+    const {
+        name, email, birthDate, street, state, city, country, zip
+    } = req.body
+
+    User.findOneAndUpdate({ _id: req.params.id },{name, email, birthDate}, {new: true}, (err, user) =>{
         if(err){
             res.status(400).send(response('Invalid user id'));
         }else if(!user){
             res.status(404).send(response('User not found'));
         }else if(user){
-            if(req.body.name){
-                user.name = req.body.name;
-            }else if(req.body.email){
-                user.email = req.body.email;
-            }else if(req.body.birthDate){
-                user.birthDate = req.body.birthDate;
-            }
-            user.save();
-            res.status(200).send(response('OK', user));
+            Address.findOneAndUpdate({ _id: user.address }, {street, state, city, country, zip}, {new: true}, result =>{
+                res.status(200).send(response('OK', user));
+            }).catch(err);
         }
-    });
+    }).catch(err);
 })
 
 // Borrar

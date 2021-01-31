@@ -10,7 +10,8 @@ const url = "mongodb+srv://admin:admin@cluster0.xvhte.mongodb.net/db?retryWrites
 const connectionParams={
     useNewUrlParser: true,
     useCreateIndex: true,
-    useUnifiedTopology: true 
+    useUnifiedTopology: true,
+    useFindAndModify: false 
 }
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
