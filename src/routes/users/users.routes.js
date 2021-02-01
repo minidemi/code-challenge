@@ -7,7 +7,7 @@ const response = require('../../utils/responses').getResponse;
  
 //Obtenemos todos los usuarios
 router.get("/getusers", async (req,res) => {
-    const users = await User.find().populate('addresses');
+    const users = await User.find().populate('address');
     res.status(200).send(response('OK', users));
 });
  
@@ -22,7 +22,7 @@ router.get("/getusersById/:id", (req, res) => {
         }else if(user){
             res.status(200).send(response('OK', user));
         }
-    }).populate('addresses');
+    }).populate('address');
  
 });
  
